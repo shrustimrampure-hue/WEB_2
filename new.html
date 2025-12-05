@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Online Registration System</title>
+    <!-- Load Tailwind CSS for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load jQuery for easy DOM manipulation and event handling -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        /* CSS Section (Mimicking styles.css) */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f8;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; 
+            padding-top: 3rem;
+            padding-bottom: 3rem;
+        }
+        .main-container {
+            max-width: 900px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+        }
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+
+        <!-- REPORT VIEW CONTAINER (HTML structure for the report) -->
+        <div id="reportView" class="hidden">
+            <header class="mb-8 bg-white p-6 shadow-lg rounded-xl flex justify-between items-center">
+                <h1 id="reportTitle" class="text-3xl font-extrabold text-blue-800">Application Report</h1>
+                <div class="flex space-x-3">
+                    <button id="clearDataBtn" class="bg-red-100 text-red-700 hover:bg-red-200 font-medium py-2 px-4 rounded-lg text-sm transition duration-200 shadow-sm">
+                        Clear All Data
+                    </button>
+                    <button id="goToFormBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                        ← Register New Applicant
+                    </button>
+                </div>
+            </header>
+
+            <div id="applicantList" class="space-y-4">
+                <!-- Applicant data will be inserted here by JavaScript -->
+            </div>
+
+            <div id="emptyMessage" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mt-8 rounded-lg" role="alert">
+                <p class="font-bold">No Applications Found</p>
+                <p>It looks like no one has registered yet. Please click "Register New Applicant" to submit data.</p>
+            </div>
+        </div>
+        
+        <!-- REGISTRATION FORM CONTAINER (HTML structure for the form) -->
+        <div id="formView" class="bg-white p-8 md:p-10 shadow-xl rounded-xl border border-gray-100 mx-auto" style="max-width: 600px;">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-extrabold text-gray-900">Student Registration</h1>
+                <button id="goToReportBtn" class="bg-green-100 text-green-700 hover:bg-green-200 font-medium py-2 px-3 rounded-lg text-sm transition duration-200">
+                    View Applicants
+                </button>
+            </div>
+            <p class="text-gray-500 mb-8 text-center">Fill out the form below to register for the program.</p>
+
+            <form id="registrationForm" class="space-y-6">
+                <!-- Form Fields -->
+                <div>
+                    <label for="fullName" class="form-label">Full Name</label>
+                    <input type="text" id="fullName" name="fullName" class="form-input" placeholder="John Doe" required>
+                </div>
+                <div>
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="you@example.com" required>
+                </div>
+                <div>
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="(123) 456-7890" required>
+                </div>
+                <div>
+                    <label for="program" class="form-label">Program of Interest</label>
+                    <select id="program" name="program" class="form-input appearance-none bg-white" required>
+                        <option value="">-- Select a Program --</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Data Analytics">Data Analytics</option>
+                        <option value="Business Administration">Business Administration</option>
+                        <option value="Creative Arts">Creative Arts</option>
+                    </select>
+                </div>
+
+                <!-- Submission Button -->
+                <button type="submit" id="submitButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300">
+                    Register Now
+                </button>
+            </form>
+            
+            <!-- Message/Error Box -->
+            <div id="messageBox" class="mt-6 p-4 rounded-lg text-sm text-center hidden" role="alert"></div>
+        </div>
+
+        <!-- Custom Modal for Confirmation (Used by Report View) -->
+        <div id="confirmModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Confirm Data Clear</h3>
+                <p class="text-gray-600 mb-6">Are you sure you want to delete ALL registered application data? This action cannot be undone.</p>
+                <div class="flex justify-end space-x-3">
+                    <button id="cancelClearBtn" class="px-4 py-2 text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-lg">Cancel</button>
+                    <button id="confirmClearBtn" class="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg">Delete All</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JavaScript Section (Encapsulated for safer execution) -->
+    <script>
+        // Use a self-executing function to avoid polluting the global scope unnecessarily
+        (function() {
+            // Get global variables from the Canvas environment
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const storageKey = 'allRegistrations_' + appId;
+            let registrations = []; // Global array to hold all data
+
+            // --- View Management ---
+            function showView(viewName) {
+                if (viewName === 'report') {
+                    loadAndDisplayData(); 
+                    $("#formView").hide();
+                    $("#reportView").fadeIn(300);
+                } else { // 'form'
+                    $("#reportView").hide();
+                    $("#formView").fadeIn(300);
+                }
+            }
+
+            // --- Data Loading and Display (Report Logic) ---
+            function loadAndDisplayData() {
+                const storedData = localStorage.getItem(storageKey); 
+                registrations = []; 
+
+                if (storedData) {
+                    try {
+                        registrations = JSON.parse(storedData); 
+                    } catch (e) {
+                        console.error("Error parsing stored data:", e);
+                        $("#applicantList").html('<p class="text-red-600">Error loading data: Local storage data is corrupted.</p>');
+                        return;
+                    }
+                }
+
+                const applicantList = $("#applicantList");
+                applicantList.empty(); 
+
+                if (registrations.length === 0) {
+                    $("#emptyMessage").removeClass('hidden');
+                    $("#reportTitle").text(Application Report (0 Total));
+                    $("#clearDataBtn").prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+                    return;
+                }
+
+                $("#emptyMessage").addClass('hidden');
+                $("#clearDataBtn").prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+                
+                let listHtml = '';
+                
+                registrations.forEach((data, index) => {
+                    const itemHtml = `
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition duration-300">
+                            <div class="flex items-center justify-between mb-3 border-b pb-2">
+                                <h3 class="text-xl font-bold text-gray-800">Applicant #${index + 1}</h3>
+                                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">${data.program}</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-y-2 text-sm text-gray-600">
+                                <div><span class="font-semibold text-gray-700">Name:</span> ${data.fullName}</div>
+                                <div><span class="font-semibold text-gray-700">Email:</span> ${data.email}</div>
+                                <div><span class="font-semibold text-gray-700">Phone:</span> ${data.phone}</div>
+                                <div class="md:col-span-3 text-xs pt-2 border-t mt-2">
+                                    <span class="font-semibold text-gray-500">Registered On:</span> ${data.registrationDate}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    listHtml += itemHtml;
+                });
+
+                $("#reportTitle").text(Application Report (${registrations.length} Total));
+                applicantList.html(listHtml);
+            }
+            
+            // --- Form Messaging ---
+            function showMessage(text, type = 'success') {
+                const box = $("#messageBox");
+                box.text(text).removeClass('hidden bg-red-100 border-red-400 text-red-700 bg-green-100 border-green-400 text-green-700');
+                
+                if (type === 'success') {
+                    box.addClass('bg-green-100 border border-green-400 text-green-700');
+                } else if (type === 'error') {
+                    box.addClass('bg-red-100 border border-red-400 text-red-700');
+                }
+                setTimeout(() => box.addClass('hidden'), 5000);
+            }
+
+            // --- Main Initialization and Event Handlers ---
+            // This function ensures the code runs only after the DOM is fully constructed.
+            $(document).ready(function() {
+                
+                // View Switching
+                $("#goToReportBtn").on('click', () => showView('report'));
+                $("#goToFormBtn").on('click', () => showView('form'));
+
+                // Clear Data Handlers
+                $("#clearDataBtn").on('click', function() { $("#confirmModal").removeClass('hidden'); });
+                $("#cancelClearBtn").on('click', function() { $("#confirmModal").addClass('hidden'); });
+                $("#confirmClearBtn").on('click', function() {
+                    localStorage.removeItem(storageKey);
+                    $("#confirmModal").addClass('hidden');
+                    loadAndDisplayData(); 
+                });
+
+                // Form Submission 
+                $("#registrationForm").on('submit', function(event) {
+                    event.preventDefault(); 
+                    const submitBtn = $("#submitButton");
+                    submitBtn.prop('disabled', true).html('<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...');
+
+                    const formData = {};
+                    $(this).serializeArray().forEach(item => {
+                        formData[item.name] = item.value;
+                    });
+
+                    // Simulate saving data 
+                    setTimeout(() => {
+                        formData.registrationDate = new Date().toLocaleString(); 
+                        
+                        loadAndDisplayData(); // Load existing data
+                        registrations.push(formData);
+                        localStorage.setItem(storageKey, JSON.stringify(registrations)); // Save updated data
+                        
+                        showMessage(Registration successful for ${formData.fullName}!, 'success');
+                        $("#registrationForm")[0].reset();
+                        submitBtn.prop('disabled', false).html('Register Now');
+                        
+                        // Switch to the report view
+                        showView('report');
+
+                    }, 1000); // 1 second delay
+                });
+
+                // Start the app by showing the form
+                showView('form');
+            });
+        })();
+    </script>
+</body>
+</html>
